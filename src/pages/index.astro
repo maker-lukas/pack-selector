@@ -366,7 +366,7 @@ import '../styles/global.css';
 
 				try {
 					// Fetch the original pack
-					const response = await fetch('/B.E.T.T.zip');
+					const response = await fetch(import.meta.env.BASE_URL + 'B.E.T.T.zip');
 					const originalZipData = await response.arrayBuffer();
 					const originalZip = await JSZip.loadAsync(originalZipData);
 
