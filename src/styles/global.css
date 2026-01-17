@@ -1,0 +1,124 @@
+* {
+	box-sizing: border-box;
+}
+
+body {
+	font-family: system-ui, sans-serif;
+	background: #1a1a2e;
+	color: #eee;
+	margin: 0;
+	padding: 2rem;
+}
+
+main {
+	max-width: 700px;
+	margin: 0 auto;
+}
+
+h1 {
+	margin: 0 0 2rem 0;
+}
+
+section {
+	margin-bottom: 2rem;
+    background-color: #2C2C4E;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+h2 {
+	margin: 0 0 0.5rem 0;
+	font-size: 1.1rem;
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+}
+
+.select-all {
+	font-size: 0.8rem;
+	color: #7dd3fc;
+	background: none;
+	border: none;
+	cursor: pointer;
+	margin-left: auto;
+}
+
+.select-all:hover {
+	text-decoration: underline;
+}
+
+.option {
+	margin-bottom: 0.25rem;
+}
+
+.option > label {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.4rem 0;
+	cursor: pointer;
+}
+
+.option input {
+	width: 16px;
+	height: 16px;
+	cursor: pointer;
+}
+
+.variants {
+	display: none;
+	margin-left: 1.5rem;
+	padding-left: 0.75rem;
+	border-left: 1px solid #444;
+}
+
+.variants.visible {
+	display: block;
+}
+
+.variants label {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.3rem 0;
+	cursor: pointer;
+	color: #aaa;
+	font-size: 0.9rem;
+}
+
+.variants input {
+	width: 14px;
+	height: 14px;
+	cursor: pointer;
+}
+
+.actions {
+	margin-top: 2rem;
+	display: flex;
+
+	align-items: center;
+	gap: 1rem;
+}
+
+button#download-btn {
+	background: #2C2C4E;
+	color: white;
+	border: none;
+	padding: 0.6rem 1.5rem;
+	font-size: 1rem;
+	font-weight: 500;
+	cursor: pointer;
+    border-radius: 5px;
+    width: 100%;
+
+}
+
+button#download-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+#status {
+	color: #888;
+	font-size: 0.9rem;
+}

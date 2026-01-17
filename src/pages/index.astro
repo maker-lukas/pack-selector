@@ -1,5 +1,6 @@
 ---
-
+import textureData from '../data/textures.json';
+import '../styles/global.css';
 ---
 
 <html lang="en">
@@ -7,10 +8,527 @@
 		<meta charset="utf-8" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
+		<title>B.E.T.T. Pack Selector</title>
 	</head>
 	<body>
-		<h1>Astro</h1>
+		<main>
+			<h1>B.E.T.T. Pack Selector</h1>
+			
+			{textureData.categories.map(category => (
+				<section data-category={category.id}>
+					<h2>
+						{category.name}
+					</h2>
+					{category.enchantments.map(ench => (
+						<div class="option">
+							<label>
+								<input 
+									type="checkbox" 
+									data-category={category.id}
+									data-enchantment={ench.id}
+									data-has-variants={ench.variants ? 'true' : 'false'}
+								/>
+								<span>{ench.name}</span>
+							</label>
+							{ench.variants && (
+								<div class="variants" data-parent={`${category.id}-${ench.id}`}>
+									{ench.variants.map(variant => (
+										<label>
+											<input 
+												type="checkbox" 
+												data-category={category.id}
+												data-enchantment={variant.id}
+												data-parent-enchantment={ench.id}
+											/>
+											<span>{variant.name}</span>
+										</label>
+									))}
+								</div>
+							)}
+						</div>
+					))}
+				</section>
+			))}
+			
+			<div class="actions">
+				<button id="download-btn">Download</button>
+				<span id="status"></span>
+			</div>
+		</main>
+
+		<script>
+			import JSZip from 'jszip';
+
+			const downloadBtn = document.getElementById('download-btn') as HTMLButtonElement;
+			const status = document.getElementById('status')!;
+
+			// Select all buttons
+			document.querySelectorAll('.select-all').forEach(btn => {
+				btn.addEventListener('click', (e) => {
+					const category = (e.target as HTMLElement).dataset.category;
+					const checkboxes = document.querySelectorAll(`input[data-category="${category}"]:not([data-parent-enchantment])`) as NodeListOf<HTMLInputElement>;
+					const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+					checkboxes.forEach(cb => {
+						cb.checked = !allChecked;
+						cb.dispatchEvent(new Event('change'));
+					});
+				});
+			});
+
+			// Show/hide variants when parent is checked/unchecked
+			document.querySelectorAll('input[data-has-variants="true"]').forEach(cb => {
+				const checkbox = cb as HTMLInputElement;
+				const category = checkbox.dataset.category;
+				const enchantment = checkbox.dataset.enchantment;
+				const variantsDiv = document.querySelector(`.variants[data-parent="${category}-${enchantment}"]`);
+				
+				checkbox.addEventListener('change', () => {
+					if (variantsDiv) {
+						if (checkbox.checked) {
+							variantsDiv.classList.add('visible');
+						} else {
+							variantsDiv.classList.remove('visible');
+							variantsDiv.querySelectorAll('input[type="checkbox"]').forEach(v => {
+								(v as HTMLInputElement).checked = false;
+							});
+						}
+					}
+				});
+			});
+
+			// Ensure parent is checked when variant is checked
+			document.querySelectorAll('input[data-parent-enchantment]').forEach(cb => {
+				const checkbox = cb as HTMLInputElement;
+				checkbox.addEventListener('change', () => {
+					if (checkbox.checked) {
+						const category = checkbox.dataset.category;
+						const parentEnch = checkbox.dataset.parentEnchantment;
+						const parentCb = document.querySelector(`input[data-category="${category}"][data-enchantment="${parentEnch}"]`) as HTMLInputElement;
+						if (parentCb && !parentCb.checked) {
+							parentCb.checked = true;
+							parentCb.dispatchEvent(new Event('change'));
+						}
+					}
+				});
+			});
+
+			// Item definition files for each category
+			const itemFiles: Record<string, string[]> = {
+				sword: [
+					'assets/minecraft/items/diamond_sword.json',
+					'assets/minecraft/items/iron_sword.json',
+					'assets/minecraft/items/golden_sword.json',
+					'assets/minecraft/items/stone_sword.json',
+					'assets/minecraft/items/wooden_sword.json',
+					'assets/minecraft/items/netherite_sword.json',
+					'assets/minecraft/items/copper_sword.json'
+				],
+				pickaxe: [
+					'assets/minecraft/items/diamond_pickaxe.json',
+					'assets/minecraft/items/iron_pickaxe.json',
+					'assets/minecraft/items/golden_pickaxe.json',
+					'assets/minecraft/items/stone_pickaxe.json',
+					'assets/minecraft/items/wooden_pickaxe.json',
+					'assets/minecraft/items/netherite_pickaxe.json',
+					'assets/minecraft/items/copper_pickaxe.json'
+				],
+				axe: [
+					'assets/minecraft/items/diamond_axe.json',
+					'assets/minecraft/items/iron_axe.json',
+					'assets/minecraft/items/golden_axe.json',
+					'assets/minecraft/items/stone_axe.json',
+					'assets/minecraft/items/wooden_axe.json',
+					'assets/minecraft/items/netherite_axe.json',
+					'assets/minecraft/items/copper_axe.json'
+				],
+				shovel: [
+					'assets/minecraft/items/diamond_shovel.json',
+					'assets/minecraft/items/iron_shovel.json',
+					'assets/minecraft/items/golden_shovel.json',
+					'assets/minecraft/items/stone_shovel.json',
+					'assets/minecraft/items/wooden_shovel.json',
+					'assets/minecraft/items/netherite_shovel.json',
+					'assets/minecraft/items/copper_shovel.json'
+				],
+				hoe: [
+					'assets/minecraft/items/diamond_hoe.json',
+					'assets/minecraft/items/iron_hoe.json',
+					'assets/minecraft/items/golden_hoe.json',
+					'assets/minecraft/items/stone_hoe.json',
+					'assets/minecraft/items/wooden_hoe.json',
+					'assets/minecraft/items/netherite_hoe.json',
+					'assets/minecraft/items/copper_hoe.json'
+				],
+				bow: [
+					'assets/minecraft/items/bow.json'
+				],
+				spear: [
+					'assets/minecraft/items/diamond_spear.json',
+					'assets/minecraft/items/iron_spear.json',
+					'assets/minecraft/items/golden_spear.json',
+					'assets/minecraft/items/stone_spear.json',
+					'assets/minecraft/items/wooden_spear.json',
+					'assets/minecraft/items/netherite_spear.json',
+					'assets/minecraft/items/copper_spear.json'
+				]
+			};
+
+			// File mapping: which files to include for each enchantment
+			const fileMapping: Record<string, Record<string, string[]>> = {
+				sword: {
+					fire_aspect: [
+						'assets/minecraft/textures/item/sword/fire_aspect.png',
+						'assets/minecraft/textures/item/sword/fire_aspect.png.mcmeta',
+						'assets/minecraft/models/item/sword/fire_aspect.json'
+					],
+					fire_aspect_netherite: [
+						'assets/minecraft/textures/item/sword/fire_aspect_netherite.png',
+						'assets/minecraft/textures/item/sword/fire_aspect_netherite.png.mcmeta',
+						'assets/minecraft/models/item/sword/fire_aspect_netherite.json'
+					],
+					fire_aspect_copper: [
+						'assets/minecraft/textures/item/sword/fire_aspect_copper.png',
+						'assets/minecraft/textures/item/sword/fire_aspect_copper.png.mcmeta',
+						'assets/minecraft/models/item/sword/fire_aspect_copper.json'
+					],
+					sharpness: [
+						'assets/minecraft/textures/item/sword/sharpness.png',
+						'assets/minecraft/textures/item/sword/sharpness.png.mcmeta',
+						'assets/minecraft/models/item/sword/sharpness.json'
+					],
+					mending: [
+						'assets/minecraft/textures/item/sword/mending_0.png',
+						'assets/minecraft/textures/item/sword/mending_1.png',
+						'assets/minecraft/textures/item/sword/mending_2.png',
+						'assets/minecraft/models/item/sword/mending_0.json',
+						'assets/minecraft/models/item/sword/mending_1.json',
+						'assets/minecraft/models/item/sword/mending_2.json'
+					]
+				},
+				pickaxe: {
+					fortune: [
+						'assets/minecraft/textures/item/pickaxe/fortune.png',
+						'assets/minecraft/models/item/pickaxe/fortune.json'
+					],
+					silk_touch: [
+						'assets/minecraft/textures/item/pickaxe/silk_touch.png',
+						'assets/minecraft/models/item/pickaxe/silk_touch.json'
+					],
+					mending: [
+						'assets/minecraft/textures/item/pickaxe/mending_0.png',
+						'assets/minecraft/textures/item/pickaxe/mending_1.png',
+						'assets/minecraft/textures/item/pickaxe/mending_2.png',
+						'assets/minecraft/models/item/pickaxe/mending_0.json',
+						'assets/minecraft/models/item/pickaxe/mending_1.json',
+						'assets/minecraft/models/item/pickaxe/mending_2.json'
+					]
+				},
+				axe: {
+					fortune: [
+						'assets/minecraft/textures/item/axe/fortune.png',
+						'assets/minecraft/models/item/axe/fortune.json'
+					],
+					silk_touch: [
+						'assets/minecraft/textures/item/axe/silk_touch.png',
+						'assets/minecraft/models/item/axe/silk_touch.json'
+					],
+					sharpness: [
+						'assets/minecraft/textures/item/axe/sharpness.png',
+						'assets/minecraft/textures/item/axe/sharpness.png.mcmeta',
+						'assets/minecraft/models/item/axe/sharpness.json'
+					],
+					mending: [
+						'assets/minecraft/textures/item/axe/mending_0.png',
+						'assets/minecraft/textures/item/axe/mending_1.png',
+						'assets/minecraft/textures/item/axe/mending_2.png',
+						'assets/minecraft/models/item/axe/mending_0.json',
+						'assets/minecraft/models/item/axe/mending_1.json',
+						'assets/minecraft/models/item/axe/mending_2.json'
+					]
+				},
+				shovel: {
+					fortune: [
+						'assets/minecraft/textures/item/shovel/fortune.png',
+						'assets/minecraft/models/item/shovel/fortune.json'
+					],
+					silk_touch: [
+						'assets/minecraft/textures/item/shovel/silk_touch.png',
+						'assets/minecraft/models/item/shovel/silk_touch.json'
+					],
+					mending: [
+						'assets/minecraft/textures/item/shovel/mending_0.png',
+						'assets/minecraft/textures/item/shovel/mending_1.png',
+						'assets/minecraft/textures/item/shovel/mending_2.png',
+						'assets/minecraft/models/item/shovel/mending_0.json',
+						'assets/minecraft/models/item/shovel/mending_1.json',
+						'assets/minecraft/models/item/shovel/mending_2.json'
+					]
+				},
+				hoe: {
+					fortune: [
+						'assets/minecraft/textures/item/hoe/fortune.png',
+						'assets/minecraft/models/item/hoe/fortune.json'
+					],
+					silk_touch: [
+						'assets/minecraft/textures/item/hoe/silk_touch.png',
+						'assets/minecraft/models/item/hoe/silk_touch.json'
+					],
+					mending: [
+						'assets/minecraft/textures/item/hoe/mending_0.png',
+						'assets/minecraft/textures/item/hoe/mending_1.png',
+						'assets/minecraft/textures/item/hoe/mending_2.png',
+						'assets/minecraft/models/item/hoe/mending_0.json',
+						'assets/minecraft/models/item/hoe/mending_1.json',
+						'assets/minecraft/models/item/hoe/mending_2.json'
+					]
+				},
+				bow: {
+					flame: [
+						'assets/minecraft/textures/item/bow/flame_pulling_0.png',
+						'assets/minecraft/textures/item/bow/flame_pulling_0.png.mcmeta',
+						'assets/minecraft/textures/item/bow/flame_pulling_1.png',
+						'assets/minecraft/textures/item/bow/flame_pulling_1.png.mcmeta',
+						'assets/minecraft/textures/item/bow/flame_pulling_2.png',
+						'assets/minecraft/textures/item/bow/flame_pulling_2.png.mcmeta',
+						'assets/minecraft/models/item/bow/flame_bow_pulling_0.json',
+						'assets/minecraft/models/item/bow/flame_bow_pulling_1.json',
+						'assets/minecraft/models/item/bow/flame_bow_pulling_2.json'
+					]
+				},
+				spear: {
+					fire_aspect: [
+						'assets/minecraft/textures/item/spear/fire_aspect.png',
+						'assets/minecraft/textures/item/spear/fire_aspect.png.mcmeta',
+						'assets/minecraft/textures/item/spear/fire_aspect_in_hand.png',
+						'assets/minecraft/textures/item/spear/fire_aspect_in_hand.png.mcmeta',
+						'assets/minecraft/models/item/spear/fire_aspect.json',
+						'assets/minecraft/models/item/spear/fire_aspect_in_hand.json'
+					],
+					fire_aspect_netherite: [
+						'assets/minecraft/textures/item/spear/fire_aspect_netherite.png',
+						'assets/minecraft/textures/item/spear/fire_aspect_netherite.png.mcmeta',
+						'assets/minecraft/textures/item/spear/fire_aspect_in_hand_netherite.png',
+						'assets/minecraft/textures/item/spear/fire_aspect_in_hand_netherite.png.mcmeta',
+						'assets/minecraft/models/item/spear/fire_aspect_netherite.json',
+						'assets/minecraft/models/item/spear/fire_aspect_in_hand_netherite.json'
+					],
+					fire_aspect_copper: [
+						'assets/minecraft/textures/item/spear/fire_aspect_copper.png',
+						'assets/minecraft/textures/item/spear/fire_aspect_copper.png.mcmeta',
+						'assets/minecraft/textures/item/spear/fire_aspect_in_hand_copper.png',
+						'assets/minecraft/textures/item/spear/fire_aspect_in_hand_copper.png.mcmeta',
+						'assets/minecraft/models/item/spear/fire_aspect_copper.json',
+						'assets/minecraft/models/item/spear/fire_aspect_in_hand_copper.json'
+					],
+					sharpness: [
+						'assets/minecraft/textures/item/spear/sharpness.png',
+						'assets/minecraft/textures/item/spear/sharpness.png.mcmeta',
+						'assets/minecraft/textures/item/spear/sharpness_in_hand.png',
+						'assets/minecraft/textures/item/spear/sharpness_in_hand.png.mcmeta',
+						'assets/minecraft/models/item/spear/sharpness.json',
+						'assets/minecraft/models/item/spear/sharpness_in_hand.json'
+					],
+					mending: [
+						'assets/minecraft/textures/item/spear/mending_0.png',
+						'assets/minecraft/textures/item/spear/mending_1.png',
+						'assets/minecraft/textures/item/spear/mending_2.png',
+						'assets/minecraft/textures/item/spear/mending_0_in_hand.png',
+						'assets/minecraft/textures/item/spear/mending_1_in_hand.png',
+						'assets/minecraft/textures/item/spear/mending_2_in_hand.png',
+						'assets/minecraft/models/item/spear/mending_0.json',
+						'assets/minecraft/models/item/spear/mending_1.json',
+						'assets/minecraft/models/item/spear/mending_2.json',
+						'assets/minecraft/models/item/spear/mending_0_in_hand.json',
+						'assets/minecraft/models/item/spear/mending_1_in_hand.json',
+						'assets/minecraft/models/item/spear/mending_2_in_hand.json'
+					]
+				}
+			};
+
+			downloadBtn.addEventListener('click', async () => {
+				const selected: { category: string; enchantment: string }[] = [];
+				
+				document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+					const el = cb as HTMLInputElement;
+					selected.push({
+						category: el.dataset.category!,
+						enchantment: el.dataset.enchantment!
+					});
+				});
+
+				if (selected.length === 0) {
+					status.textContent = 'Please select at least one texture!';
+					return;
+				}
+
+				downloadBtn.disabled = true;
+				
+
+				try {
+					// Fetch the original pack
+					const response = await fetch('/B.E.T.T.zip');
+					const originalZipData = await response.arrayBuffer();
+					const originalZip = await JSZip.loadAsync(originalZipData);
+
+					// Create new zip
+					const newZip = new JSZip();
+
+					// Add pack.mcmeta and pack.png
+					const packMcmeta = await originalZip.file('pack.mcmeta')?.async('arraybuffer');
+					const packPng = await originalZip.file('pack.png')?.async('arraybuffer');
+					
+					if (packMcmeta) newZip.file('pack.mcmeta', packMcmeta);
+					if (packPng) newZip.file('pack.png', packPng);
+
+					
+
+					// Collect all files to include
+					const filesToInclude = new Set<string>();
+					const categoriesUsed = new Set<string>();
+					
+					for (const { category, enchantment } of selected) {
+						categoriesUsed.add(category);
+						const files = fileMapping[category]?.[enchantment] || [];
+						files.forEach(f => filesToInclude.add(f));
+					}
+					
+					// Get selected enchantment options per category
+					const selectedByCategory: Record<string, Set<string>> = {};
+					for (const { category, enchantment } of selected) {
+						if (!selectedByCategory[category]) {
+							selectedByCategory[category] = new Set();
+						}
+						selectedByCategory[category].add(enchantment);
+					}
+
+					// Detect which material variant this item is
+					const getMaterialVariant = (itemPath: string): 'netherite' | 'copper' | 'default' => {
+						if (itemPath.includes('netherite_')) return 'netherite';
+						if (itemPath.includes('copper_')) return 'copper';
+						return 'default';
+					};
+
+					// Check if an enchantment condition should be included and modify model if needed
+					const shouldIncludeEnchantment = (
+						model: any, 
+						selectedEnchants: Set<string>,
+						materialVariant: 'netherite' | 'copper' | 'default'
+					): { include: boolean; modified?: any } => {
+						if (model.type !== 'minecraft:condition' || 
+							model.predicate !== 'minecraft:enchantments' ||
+							!Array.isArray(model.value)) {
+							return { include: true };
+						}
+
+						const enchantName = model.value[0]?.enchantments;
+						
+						// Handle fire_aspect specifically
+						if (enchantName === 'minecraft:fire_aspect') {
+							const hasBaseFireAspect = selectedEnchants.has('fire_aspect');
+							const hasNetherite = selectedEnchants.has('fire_aspect_netherite');
+							const hasCopper = selectedEnchants.has('fire_aspect_copper');
+
+							// Check if this variant is selected or if base is selected
+							if (materialVariant === 'netherite') {
+								if (hasNetherite) return { include: true };
+								if (hasBaseFireAspect) {
+									// Replace netherite model with default fire_aspect
+									const modified = JSON.parse(JSON.stringify(model));
+									if (modified.on_true?.model) {
+										modified.on_true.model = modified.on_true.model.replace('fire_aspect_netherite', 'fire_aspect');
+									}
+									return { include: true, modified };
+								}
+								return { include: false };
+							} else if (materialVariant === 'copper') {
+								if (hasCopper) return { include: true };
+								if (hasBaseFireAspect) {
+									// Replace copper model with default fire_aspect
+									const modified = JSON.parse(JSON.stringify(model));
+									if (modified.on_true?.model) {
+										modified.on_true.model = modified.on_true.model.replace('fire_aspect_copper', 'fire_aspect');
+									}
+									return { include: true, modified };
+								}
+								return { include: false };
+							} else {
+								// Default material - just check if base fire_aspect is selected
+								return { include: hasBaseFireAspect };
+							}
+						}
+
+						// Map other enchantments
+						const enchantMap: Record<string, string> = {
+							'minecraft:sharpness': 'sharpness',
+							'minecraft:mending': 'mending',
+							'minecraft:fortune': 'fortune',
+							'minecraft:silk_touch': 'silk_touch',
+							'minecraft:flame': 'flame'
+						};
+
+						const optionId = enchantMap[enchantName];
+						return { include: optionId ? selectedEnchants.has(optionId) : true };
+					};
+
+					// Dynamically generate item definition files
+					for (const category of categoriesUsed) {
+						const itemFilePaths = itemFiles[category] || [];
+						const selectedEnchants = selectedByCategory[category] || new Set();
+
+						for (const itemPath of itemFilePaths) {
+							const itemFile = originalZip.file(itemPath);
+							if (!itemFile) continue;
+
+							const materialVariant = getMaterialVariant(itemPath);
+							const itemJson = JSON.parse(await itemFile.async('text'));
+							
+							if (itemJson.model?.type === 'minecraft:composite' && Array.isArray(itemJson.model.models)) {
+								// Filter and modify models array
+								itemJson.model.models = itemJson.model.models
+									.map((model: any) => {
+										// Keep base model (non-condition type)
+										if (model.type === 'minecraft:model') return model;
+										
+										const result = shouldIncludeEnchantment(model, selectedEnchants, materialVariant);
+										if (!result.include) return null;
+										return result.modified || model;
+									})
+									.filter((m: any) => m !== null);
+							}
+
+							// Add the modified item file to the new zip
+							newZip.file(itemPath, JSON.stringify(itemJson, null, 4));
+						}
+					}
+
+					// Add selected files
+					for (const filePath of filesToInclude) {
+						const file = originalZip.file(filePath);
+						if (file) {
+							const content = await file.async('arraybuffer');
+							newZip.file(filePath, content);
+						}
+					}
+
+					
+
+					// Generate and download
+					const blob = await newZip.generateAsync({ type: 'blob' });
+					const url = URL.createObjectURL(blob);
+					const a = document.createElement('a');
+					a.href = url;
+					a.download = 'B.E.T.T-Custom.zip';
+					a.click();
+					URL.revokeObjectURL(url);
+
+					status.textContent = '';
+				} catch (err) {
+					console.error(err);
+					status.textContent = 'Error creating pack. Check console.';
+				} finally {
+					downloadBtn.disabled = false;
+				}
+			});
+		</script>
 	</body>
 </html>

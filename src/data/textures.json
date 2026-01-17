@@ -1,0 +1,82 @@
+{
+  "categories": [
+    {
+      "id": "sword",
+      "name": "Sword",
+      "enchantments": [
+        { 
+          "id": "fire_aspect", 
+          "name": "Fire Aspect", 
+          "description": "Animated flame effect",
+          "variants": [
+            { "id": "fire_aspect_netherite", "name": "Netherite variant: blue flame" },
+            { "id": "fire_aspect_copper", "name": "Copper variant: green flame" }
+          ]
+        },
+        { "id": "sharpness", "name": "Sharpness", "description": "Sharp edge effect" },
+        { "id": "mending", "name": "Mending", "description": "Repair indicator (3 levels)" }
+      ]
+    },
+    {
+      "id": "pickaxe",
+      "name": "Pickaxe",
+      "enchantments": [
+        { "id": "fortune", "name": "Fortune", "description": "Fortune effect" },
+        { "id": "silk_touch", "name": "Silk Touch", "description": "Silk touch effect" },
+        { "id": "mending", "name": "Mending", "description": "Repair indicator (3 levels)" }
+      ]
+    },
+    {
+      "id": "axe",
+      "name": "Axe",
+      "enchantments": [
+        { "id": "fortune", "name": "Fortune", "description": "Fortune effect" },
+        { "id": "silk_touch", "name": "Silk Touch", "description": "Silk touch effect" },
+        { "id": "sharpness", "name": "Sharpness", "description": "Sharp edge effect" },
+        { "id": "mending", "name": "Mending", "description": "Repair indicator (3 levels)" }
+      ]
+    },
+    {
+      "id": "shovel",
+      "name": "Shovel",
+      "enchantments": [
+        { "id": "fortune", "name": "Fortune", "description": "Fortune effect" },
+        { "id": "silk_touch", "name": "Silk Touch", "description": "Silk touch effect" },
+        { "id": "mending", "name": "Mending", "description": "Repair indicator (3 levels)" }
+      ]
+    },
+    {
+      "id": "hoe",
+      "name": "Hoe",
+      "enchantments": [
+        { "id": "fortune", "name": "Fortune", "description": "Fortune effect" },
+        { "id": "silk_touch", "name": "Silk Touch", "description": "Silk touch effect" },
+        { "id": "mending", "name": "Mending", "description": "Repair indicator (3 levels)" }
+      ]
+    },
+    {
+      "id": "bow",
+      "name": "Bow",
+      "enchantments": [
+        { "id": "flame", "name": "Flame", "description": "Animated flame on bow" }
+      ]
+    },
+    {
+      "id": "spear",
+      "name": "Spear",
+      "enchantments": [
+        { 
+          "id": "fire_aspect", 
+          "name": "Fire Aspect", 
+          "description": "Flame effect",
+          "variants": [
+            { "id": "fire_aspect_netherite", "name": "Netherite variant: blue flame" },
+            { "id": "fire_aspect_copper", "name": "Copper variant: green flame" }
+          ]
+        },
+        { "id": "sharpness", "name": "Sharpness", "description": "Sharp edge effect" },
+        { "id": "mending", "name": "Mending", "description": "Repair indicator (3 levels)" }
+      ]
+    }
+  ]
+}
