@@ -122,3 +122,8 @@ button#download-btn:disabled {
 	color: #888;
 	font-size: 0.9rem;
 }
+
+.note {
+	font-weight: bold;
+	font-size: 17px;
+}
